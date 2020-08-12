@@ -5,6 +5,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 RUN [ "apt", "update" ]
 RUN [ "apt", "install", "-y", \
+    "curl", \
     "clang", \
     "cmake", \
     "g++", \
@@ -13,20 +14,17 @@ RUN [ "apt", "install", "-y", \
     "make" \
 ]
 
-ARG CC=clang
-ARG CXX=clang++
+RUN echo "D" | sh -c "$(curl -sSfL -o - https://compile.cuberite.org)"
 
-RUN [ "git", "clone", "--recursive", "https://github.com/cuberite/cuberite.git", "/tmp/src" ]
+ENV ADMIN_USERNAME=admin 
+ENV ADMIN_PASSWORD=Swordfish 
+ENV MAX_PLAYERS=30
 
-WORKDIR /tmp/src/Release
+COPY webadmin.ini .
 
-RUN [ "cmake", "-DCMAKE_BUILD_TYPE=RELEASE", ".." ]
-RUN [ "make" ]
+EXPOSE 80
+EXPOSE 443
+EXPOSE 8080
+EXPOSE 25565
 
-FROM ubuntu:20.04 as RUNNER
-
-WORKDIR /cuberite-server
-
-COPY --from=BUILDER /tmp/src/Release .
-
-ENTRYPOINT [ "./Cuberite" ]
+# ENTRYPOINT [ "./Cuberite -d" ]

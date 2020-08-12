@@ -1,0 +1,46 @@
+FROM ubuntu:20.04 as BUILDER
+
+ARG MAKEFLAGS="-j $NPROC"
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN [ "apt", "update" ]
+RUN [ "apt", "install", "-y", \
+    "clang", \
+    "cmake", \
+    "g++", \
+    "gcc", \
+    "git", \
+    "make" \
+]
+
+RUN [ "git", "clone", "--recursive", "--single-branch", "--branch", \
+    "master", "https://github.com/cuberite/cuberite.git", \
+    "/tmp/src" ]
+
+WORKDIR /tmp/src/Release
+
+RUN [ "cmake", "-DCMAKE_BUILD_TYPE=RELEASE", ".." ]
+RUN [ "make" ]
+
+WORKDIR /tmp/src/Release/Server
+
+# FROM ubuntu:20.04 as RUNNER
+
+# WORKDIR /cuberite-server
+
+# COPY --from=BUILDER /tmp/src/Release/ .
+
+# WORKDIR /cuberite-server/Server/
+
+ENV ADMIN_USERNAME=admin 
+ENV ADMIN_PASSWORD=Swordfish 
+ENV MAX_PLAYERS=30
+
+COPY webadmin.ini .
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 8080
+EXPOSE 25565
+
+# ENTRYPOINT [ "./Cuberite -d" ]
